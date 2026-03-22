@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Lisa Elite IA | Terminal Pro v2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lisa Elite IA | Desktop Terminal v2</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -14,196 +14,192 @@
             --down: #ff3e60;
             --text: #ffffff;
             --text-dim: #717a8c;
-            --border: rgba(255, 255, 255, 0.08);
-            --glow: rgba(0, 212, 255, 0.3);
+            --border: rgba(255, 255, 255, 0.1);
+            --glow: rgba(0, 212, 255, 0.2);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; }
         
         body, html { 
-            margin: 0; padding: 0; width: 100%; height: 100%;
+            margin: 0; padding: 0; width: 100%; height: 100vh;
             background: var(--bg); color: var(--text); 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
         }
 
-        /* Contenedor principal usando 100dvh para adaptarse al teclado móvil */
-        .app-container { 
-            display: flex; 
-            flex-direction: column; 
-            height: 100dvh; 
-            max-width: 500px; 
-            margin: 0 auto; 
-            border: 1px solid var(--border); 
-            width: 100%;
+        /* Layout para PC: Grid de 3 secciones */
+        .desktop-container {
+            display: grid;
+            grid-template-columns: 350px 1fr 300px;
+            grid-template-rows: 60px 1fr;
+            height: 100vh;
+            gap: 1px;
+            background: var(--border); /* Simula bordes entre paneles */
         }
 
+        /* Header superior */
         header {
-            padding: 40px 20px 15px; background: rgba(2, 4, 8, 0.95);
-            backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center; z-index: 10;
+            grid-column: 1 / -1;
+            background: var(--surface);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--border);
         }
-        .logo { font-weight: 800; font-size: 16px; letter-spacing: 2px; text-transform: uppercase; }
-        .logo span { color: var(--primary); text-shadow: 0 0 10px var(--glow); }
-        
-        #total-bal { font-family: 'JetBrains Mono'; color: var(--up); font-weight: 700; font-size: 16px; }
 
-        main { 
-            flex: 1; 
-            position: relative; 
-            overflow: hidden; 
-            background: radial-gradient(circle at top right, #0a1120, #020408);
+        .logo { font-weight: 800; font-size: 18px; letter-spacing: 2px; }
+        .logo span { color: var(--primary); }
+        #total-bal { font-family: 'JetBrains Mono'; color: var(--up); font-size: 18px; font-weight: 700; }
+
+        /* Panel Izquierdo: Mercado */
+        #market-panel {
+            background: var(--bg);
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid var(--border);
+        }
+
+        /* Panel Central: Chat de Lisa IA */
+        #chat-panel {
+            background: radial-gradient(circle at center, #0a1120, #020408);
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
-        .page { display: none; height: 100%; width: 100%; overflow-y: auto; padding: 15px; }
-        
-        /* Ajuste específico para la página de chat */
-        #page-chat { 
-            display: none; 
-            flex-direction: column; 
-            padding: 0; 
+        /* Panel Derecho: Info/Config */
+        #info-panel {
+            background: var(--surface);
+            padding: 20px;
+            border-left: 1px solid var(--border);
         }
-        
-        .page.active { display: block; animation: slideIn 0.2s ease-out; }
-        #page-chat.active { display: flex; }
 
-        @keyframes slideIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-
+        /* Estilos de Componentes */
         .asset-card {
-            background: linear-gradient(145deg, #11151d, #090b10);
-            border-radius: 16px; padding: 16px; margin-bottom: 12px;
-            border: 1px solid var(--border); transition: 0.3s;
+            background: #11151d;
+            border-radius: 12px; padding: 15px; margin-bottom: 10px;
+            border: 1px solid var(--border);
         }
-        .asset-row { display: flex; justify-content: space-between; align-items: center; }
-        .ticker { font-family: 'JetBrains Mono'; font-weight: 700; font-size: 15px; color: var(--primary); }
-        .price-live { font-family: 'JetBrains Mono'; font-size: 18px; font-weight: 800; transition: 0.2s; }
-        
-        .price-up { animation: pulseUp 0.5s; }
-        .price-down { animation: pulseDown 0.5s; }
-        @keyframes pulseUp { 0% { color: var(--up); } 100% { color: white; } }
-        @keyframes pulseDown { 0% { color: var(--down); } 100% { color: white; } }
+        .ticker { font-family: 'JetBrains Mono'; color: var(--primary); font-weight: 700; }
+        .price-live { font-family: 'JetBrains Mono'; font-size: 20px; font-weight: 800; margin: 5px 0; }
 
-        /* Scroller del chat: ahora usa flex-grow para ocupar el espacio */
-        #chat-scroller { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 20px 15px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
+        /* Chat Scroller */
+        #chat-scroller {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
-        .msg { max-width: 90%; padding: 14px; border-radius: 18px; font-size: 14px; position: relative; line-height: 1.4; }
-        .msg.ia { align-self: flex-start; background: #161b22; border: 1px solid var(--border); border-bottom-left-radius: 4px; }
-        .msg.user { align-self: flex-end; background: var(--primary); color: #000; font-weight: 700; border-bottom-right-radius: 4px; }
 
-        .prob-container { display: flex; gap: 10px; margin: 12px 0; }
-        .prob-box { flex: 1; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
-        .prob-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; display: block; }
-        .prob-val { font-family: 'JetBrains Mono'; font-weight: 800; font-size: 16px; }
+        .msg { max-width: 80%; padding: 15px; border-radius: 12px; font-size: 14px; line-height: 1.5; }
+        .msg.ia { align-self: flex-start; background: #161b22; border: 1px solid var(--border); }
+        .msg.user { align-self: flex-end; background: var(--primary); color: #000; font-weight: 700; }
 
-        .trade-ticket {
-            background: #000; border: 1px dashed var(--primary); padding: 12px;
-            border-radius: 12px; margin-top: 10px; font-family: 'JetBrains Mono'; font-size: 12px;
-        }
-        .btn-action { width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; border: none; font-weight: 800; cursor: pointer; color: #000; text-transform: uppercase; }
-
-        /* Área de input: posición relativa para que el teclado la empuje */
-        .chat-input-area { 
-            position: relative; 
-            width: 100%; 
-            padding: 15px; 
-            background: var(--bg); 
+        /* Input Area (Fijada abajo en el centro) */
+        .chat-input-area {
+            padding: 20px;
+            background: rgba(2, 4, 8, 0.8);
             border-top: 1px solid var(--border);
         }
-        .input-box { 
-            background: #1a1f29; border-radius: 15px; display: flex; 
-            padding: 8px 8px 8px 15px; border: 1px solid var(--border);
+        .input-box {
+            background: #1a1f29;
+            border-radius: 10px;
+            display: flex;
+            padding: 5px 5px 5px 15px;
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 15px var(--glow);
         }
-        .input-box input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px; } /* 16px evita zoom en iOS */
-        .send-btn { width: 40px; height: 40px; border-radius: 12px; background: var(--primary); border: none; font-size: 18px; cursor: pointer; }
+        .input-box input {
+            flex: 1; background: transparent; border: none; color: white;
+            outline: none; font-size: 15px; padding: 10px 0;
+        }
+        .send-btn {
+            width: 45px; height: 45px; border-radius: 8px;
+            background: var(--primary); border: none; cursor: pointer; font-size: 20px;
+        }
 
-        nav { height: 75px; background: #090b10; display: flex; border-top: 1px solid var(--border); width: 100%; }
-        .nav-btn { flex: 1; background: none; border: none; color: var(--text-dim); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; gap: 4px; cursor: pointer; }
-        .nav-btn.active { color: var(--primary); }
+        /* Utilidades IA */
+        .prob-container { display: flex; gap: 10px; margin: 15px 0; }
+        .prob-box { flex: 1; background: #000; padding: 10px; border-radius: 6px; text-align: center; border: 1px solid var(--border); }
+        .trade-ticket { background: #05070a; border: 1px dashed var(--primary); padding: 15px; border-radius: 8px; margin-top: 10px; font-family: 'JetBrains Mono'; }
+        
+        .btn-action { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; border: none; font-weight: 800; cursor: pointer; color: #000; }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
+<div class="desktop-container">
     <header>
-        <div class="logo">LISA <span>TERMINAL</span></div>
+        <div class="logo">LISA <span>TERMINAL PRO</span></div>
         <div id="total-bal">$12,500.00</div>
     </header>
 
-    <main>
-        <section id="page-market" class="page active">
-            <div style="margin-bottom: 20px;">
-                <h3 style="margin:0; font-size: 22px;">Watchlist <span style="color:var(--primary)">Pro</span></h3>
-                <small style="color:var(--text-dim)">Flujo Smart Money (Precios en Vivo)</small>
-            </div>
-            <div id="market-list"></div>
-        </section>
+    <aside id="market-panel">
+        <h3 style="margin-top:0">Market Watch</h3>
+        <div id="market-list"></div>
+    </aside>
 
-        <section id="page-chat" class="page">
-            <div id="chat-scroller">
-                <div class="msg ia">Sistemas listos. Analizando flujos institucionales. ¿Qué activo deseas auditar?</div>
+    <main id="chat-panel">
+        <div id="chat-scroller">
+            <div class="msg ia">
+                <b>Terminal Iniciada.</b><br>
+                Conexión establecida con protocolos Smart Money. Analizando liquidez institucional en tiempo real.<br>
+                Escribe un par (ej: <b>BTC</b> o <b>EURUSD</b>) para generar una señal.
             </div>
-            <div class="chat-input-area">
-                <div class="input-box">
-                    <input type="text" id="userInput" placeholder="Analiza EURUSD..." onkeypress="if(event.key==='Enter') processLisa()">
-                    <button class="send-btn" onclick="processLisa()">⚡</button>
-                </div>
+        </div>
+        <div class="chat-input-area">
+            <div class="input-box">
+                <input type="text" id="userInput" placeholder="Ej: Analiza Bitcoin ahora..." onkeypress="if(event.key==='Enter') processLisa()">
+                <button class="send-btn" onclick="processLisa()">⚡</button>
             </div>
-        </section>
-
-        <section id="page-mem" class="page">
-            <h2 style="color: var(--primary)">Configuración</h2>
-            <div class="asset-card" style="border-left: 4px solid var(--primary)">
-                <b>User ID:</b> Lisa_Elite_01<br>
-                <b>Server:</b> Global-Alpha<br>
-                <b>Modo:</b> Alta Precisión (Smart Money)
-            </div>
-        </section>
+        </div>
     </main>
 
-    <nav>
-        <button class="nav-btn active" onclick="tab('market', this)"><i>📊</i>MERCADO</button>
-        <button class="nav-btn" onclick="tab('chat', this)"><i>🧠</i>LISA IA</button>
-        <button class="nav-btn" onclick="tab('mem', this)"><i>⚙️</i>CONFIG</button>
-    </nav>
+    <aside id="info-panel">
+        <h3>System Status</h3>
+        <div class="asset-card" style="font-size: 13px;">
+            <p>🟢 <b>Servidor:</b> Alpha-1</p>
+            <p>🔵 <b>Latencia:</b> 14ms</p>
+            <p>⚪ <b>Versión:</b> 2.5.0</p>
+        </div>
+        <hr style="border:0; border-top:1px solid var(--border); margin:20px 0;">
+        <h3>Wallet</h3>
+        <div style="font-family: 'JetBrains Mono'; font-size: 14px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <span>Disponible:</span> <span style="color:var(--up)">$10,200</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span>En Riesgo:</span> <span style="color:var(--down)">$2,300</span>
+            </div>
+        </div>
+    </aside>
 </div>
 
 <script>
     const currentPrices = {};
-
     const assets = [
-        { id: 'eurusdt', symbol: 'EUR/USD', name: 'Euro Dólar', p: 5 },
-        { id: 'usdcjpy', symbol: 'USD/JPY', name: 'Dólar Yen', p: 3 },
-        { id: 'btcusdt', symbol: 'BTC/USDT', name: 'Bitcoin', p: 2 },
-        { id: 'ethusdt', symbol: 'ETH/USDT', name: 'Ethereum', p: 2 }
+        { id: 'eurusdt', symbol: 'EUR/USD', p: 5 },
+        { id: 'usdcjpy', symbol: 'USD/JPY', p: 3 },
+        { id: 'btcusdt', symbol: 'BTC/USDT', p: 2 },
+        { id: 'ethusdt', symbol: 'ETH/USDT', p: 2 }
     ];
 
     function initMarket() {
         const container = document.getElementById('market-list');
-        container.innerHTML = "";
         assets.forEach(a => {
             currentPrices[a.id] = 0;
             container.innerHTML += `
                 <div class="asset-card">
-                    <div class="asset-row">
-                        <div>
-                            <span class="ticker">${a.symbol}</span><br>
-                            <small style="color:var(--text-dim)">${a.name}</small>
-                        </div>
-                        <div style="text-align:right">
-                            <div class="price-live" id="p-${a.id}">0.00000</div>
-                            <div id="c-${a.id}" style="font-size:12px; font-weight:bold;">0.00%</div>
-                        </div>
-                    </div>
+                    <div class="ticker">${a.symbol}</div>
+                    <div class="price-live" id="p-${a.id}">0.00000</div>
+                    <div id="c-${a.id}" style="font-size:12px; font-weight:bold;">0.00%</div>
                 </div>
             `;
         });
@@ -228,11 +224,7 @@
             const elC = document.getElementById(`c-${id}`);
 
             if(elP) {
-                const old = parseFloat(elP.innerText);
                 elP.innerText = price.toFixed(config.p);
-                elP.classList.remove('price-up', 'price-down');
-                void elP.offsetWidth;
-                elP.classList.add(price >= old ? 'price-up' : 'price-down');
                 elC.innerText = (change >= 0 ? '▲ ' : '▼ ') + Math.abs(change).toFixed(2) + '%';
                 elC.style.color = change >= 0 ? 'var(--up)' : 'var(--down)';
             }
@@ -261,36 +253,21 @@
             const sellProb = 100 - buyProb;
             const isBuy = buyProb > sellProb;
 
-            const sl = isBuy ? (livePrice * 0.9995) : (livePrice * 1.0005);
-            const tp = isBuy ? (livePrice * 1.0015) : (livePrice * 0.9985);
-
             const response = `
-                <b style="color:var(--primary)">LISA ALGORITHM v2.0</b><br>
-                Auditando flujo real de <b>${symbol}</b>.<br>
-                Precio de mercado capturado: <span style="font-family:'JetBrains Mono'; color:white">${livePrice.toFixed(precision)}</span>
+                <b style="color:var(--primary)">LISA ANALYTICS</b><br>
+                Señal detectada para <b>${symbol}</b> basada en volumen real.<br>
                 <div class="prob-container">
-                    <div class="prob-box">
-                        <span class="prob-label">Prob. Compra</span>
-                        <span class="prob-val" style="color:var(--up)">${buyProb}%</span>
-                    </div>
-                    <div class="prob-box">
-                        <span class="prob-label">Prob. Venta</span>
-                        <span class="prob-val" style="color:var(--down)">${sellProb}%</span>
-                    </div>
+                    <div class="prob-box"><small>BUY</small><br><span style="color:var(--up); font-weight:800">${buyProb}%</span></div>
+                    <div class="prob-box"><small>SELL</small><br><span style="color:var(--down); font-weight:800">${sellProb}%</span></div>
                 </div>
                 <div class="trade-ticket">
-                    <span style="color:var(--primary)">⚡ SETUP REAL-TIME</span><br>
-                    TIPO: ${isBuy ? 'LONG / BUY' : 'SHORT / SELL'}<br>
-                    ENTRADA: ${livePrice.toFixed(precision)}<br>
-                    SL: ${sl.toFixed(precision)}<br>
-                    TP: ${tp.toFixed(precision)}
-                    <button class="btn-action" style="background:${isBuy?'var(--up)':'var(--down)'}">
-                        EJECUTAR AL ${Math.max(buyProb, sellProb)}% CERTEZA
-                    </button>
+                    ORDEN RECOMENDADA: <b>${isBuy ? 'COMPRA' : 'VENTA'}</b><br>
+                    PRECIO ACTUAL: ${livePrice.toFixed(precision)}<br>
+                    <button class="btn-action" style="background:${isBuy?'var(--up)':'var(--down)'}">EJECUTAR ORDEN</button>
                 </div>
             `;
             addMsg(response, 'ia');
-        }, 800);
+        }, 600);
     }
 
     function addMsg(txt, type) {
@@ -299,22 +276,7 @@
         d.className = `msg ${type}`;
         d.innerHTML = txt;
         s.appendChild(d);
-        // Scroll automático suave al final
         s.scrollTo({ top: s.scrollHeight, behavior: 'smooth' });
-    }
-
-    function tab(id, btn) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('page-' + id).classList.add('active');
-        btn.classList.add('active');
-    }
-
-    // Ajuste dinámico para el viewport visual (teclado móvil)
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', () => {
-            document.querySelector('.app-container').style.height = window.visualViewport.height + 'px';
-        });
     }
 
     window.onload = initMarket;
